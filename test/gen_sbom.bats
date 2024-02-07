@@ -14,7 +14,7 @@ load '../gen_sbom_functions.sh'
 #--------------------------------------------------------------------------------
 
 # don't actually call the npx command when running tests
-cyclonedx-npm() {
+cdxgen() {
   echo "mock of cyclonedx-npm"
 }
 
@@ -29,7 +29,7 @@ generate_cyclonedx_sbom_for_npm_project() {
 @test "Create output directory - output dir does not exist" {
   run check_output_directory
 
-  EXPECTED_OUTPUT_DIR="sbom_output"
+  EXPECTED_OUTPUT_DIR="build"
 
   [ -d "${EXPECTED_OUTPUT_DIR}" ]
   [ "${lines[0]}" = "writing output to ${EXPECTED_OUTPUT_DIR}" ]
@@ -38,7 +38,7 @@ generate_cyclonedx_sbom_for_npm_project() {
 }
 
 @test "Create output directory - output dir does exist" {
-  EXPECTED_OUTPUT_DIR="sbom_output"
+  EXPECTED_OUTPUT_DIR="build"
   mkdir "${EXPECTED_OUTPUT_DIR}"
 
   run check_output_directory
@@ -80,7 +80,7 @@ generate_cyclonedx_sbom_for_npm_project() {
   unset OUTPUT_DIRECTORY
   run set_sbom_filename
 
-  [ "${lines[2]}" = "sBOM will be written to sbom_output/sbom.json" ]
+  [ "${lines[2]}" = "sBOM will be written to build/sbom.json" ]
   [ "$status" -eq 0 ]
 }
 
@@ -91,7 +91,7 @@ generate_cyclonedx_sbom_for_npm_project() {
 
   run set_sbom_filename
 
-  [ "${lines[2]}" = "sBOM will be written to sbom_output/${BITBUCKET_REPO_SLUG}.json" ]
+  [ "${lines[2]}" = "sBOM will be written to build/${BITBUCKET_REPO_SLUG}.json" ]
   [ "$status" -eq 0 ]
 }
 
@@ -102,7 +102,7 @@ generate_cyclonedx_sbom_for_npm_project() {
 
   run set_sbom_filename
 
-  [ "${lines[2]}" = "sBOM will be written to sbom_output/${SBOM_FILENAME}.json" ]
+  [ "${lines[2]}" = "sBOM will be written to build/${SBOM_FILENAME}.json" ]
   [ "$status" -eq 0 ]
 }
 
@@ -112,7 +112,7 @@ generate_cyclonedx_sbom_for_npm_project() {
 
   run set_sbom_filename
 
-  [ "${lines[2]}" = "sBOM will be written to sbom_output/${BITBUCKET_REPO_SLUG}.xml" ]
+  [ "${lines[2]}" = "sBOM will be written to build/${BITBUCKET_REPO_SLUG}.xml" ]
   [ "$status" -eq 0 ]
 }
 
@@ -134,163 +134,62 @@ generate_cyclonedx_sbom_for_npm_project() {
   [ "$status" -eq 0 ]
 }
 
-@test "Verify unknown project format" {
-  run unknown_project_format
-
-  [ "${lines[0]}" = "ERROR: unknown project format" ]
-  [ "${lines[1]}" = "currently only node/npm based projects are supported" ]
-  [ "$status" -eq 1 ]
-}
-
-@test "Generate sBOM for node/npm based project" {
-  # Create a temporary package.json file
-  touch "package.json"
-
-  run generate_cyclonedx_sbom
-
-  [ "${lines[0]}" = "package.json file found. Generating sBOM for node/npm based projects" ]
-  [ "$status" -eq 0 ]
-
-  # Clean up the temporary package.json file
-  rm "package.json"
-}
-
-@test "Generate sBOM for unknown project type" {
-  run generate_cyclonedx_sbom
-
-  [ "${lines[0]}" = "ERROR: unknown project format" ]
-  [ "${lines[1]}" = "currently only node/npm based projects are supported" ]
-  [ "$status" -eq 1 ]
-}
-
-@test "Verify boolean cmd switches - true" {
-  export NPM_PACKAGE_LOCK_ONLY="true"
-  export IGNORE_NPM_ERRORS="true"
-  export NPM_FLATTEN_COMPONENTS="true"
-  export NPM_SHORT_PURLS="true"
-  export NPM_OUTPUT_REPRODUCIBLE="true"
-
-  output=$(generate_switches)
-  echo "${output}"
-
-  FAILURE_DETECTED=0
-
-  if [[ ${output} != *"--package-lock-only"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: did not find --package-lock-only switch"
-  fi
-
-  if [[ ${output} != *"--ignore-npm-errors"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: did not find --ignore-npm-errors switch"
-  fi
-
-  if [[ ${output} != *"--flatten-components"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: did not find --flatten-components switch"
-  fi
-
-  if [[ ${output} != *"--short-PURLs"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: did not find --short-purls"
-  fi
-
-  if [[ ${output} != *"--output-reproducible"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: did not find --output-reproducible switch"
-  fi
-
-  return ${FAILURE_DETECTED}
-}
-
-@test "Verify boolean cmd switches - mixed" {
-  export NPM_PACKAGE_LOCK_ONLY="false"
-  export IGNORE_NPM_ERRORS="true"
-  export NPM_FLATTEN_COMPONENTS="true"
-  export NPM_SHORT_PURLS="false"
-
-  output=$(generate_switches)
-  echo "${output}"
-
-  FAILURE_DETECTED=0
-
-  # test for switches which should be set
-  if [[ ${output} != *"--ignore-npm-errors"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: did not find --ignore-npm-errors switch"
-  fi
-
-  if [[ ${output} != *"--flatten-components"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: did not find --flatten-components switch"
-  fi
-
-  # verify switches which should not be set
-  if [[ ${output} == *"--package-lock-only"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: found --package-lock-only switch -- this should not be set"
-  fi
-
-  if [[ ${output} == *"--short-PURLs"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: found --short-purls -- this should not be set"
-  fi
-
-  if [[ ${output} == *"--output-reproducible"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: found --output-reproducible switch -- this should not be set"
-  fi
-
-  return "${FAILURE_DETECTED}"
-}
-
 @test "Verify switches with params" {
-  export NPM_SPEC_VERSION="1.4"
-  export NPM_MC_TYPE="application"
-  export NPM_OMIT="dev"
-  export NPM_OUTPUT_FORMAT="json"
+  export CDXGEN_SPEC_VERSION="1.5"
+  export CDXGEN_PROJECT_TYPE="node"
+  export CDXGEN_PATH_TO_SCAN="samples/node"
 
   output=$(generate_switches)
   echo "${output}"
 
   FAILURE_DETECTED=0
 
-  if [[ ${output} != *"--spec-version 1.4"* ]]; then
+  if [[ ${output} != *"--spec-version 1.5"* ]]; then
     FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
     echo "error: --spec-version was not properly set"
   fi
 
-  if [[ ${output} != *"--mc-type application"* ]]; then
+  if [[ ${output} != *"--type node"* ]]; then
     FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: --mc-type was not properly set"
+    echo "error: --type was not properly set"
   fi
 
-  if [[ ${output} != *"--omit dev"* ]]; then
+  if [[ ${output} != *"samples/node" ]]; then
     FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: --omit was not successfully set"
-  fi
-
-  if [[ ${output} != *"--output-format json"* ]]; then
-    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
-    echo "error: --output-format was not successfully set"
+    echo "error: path to scan was not properly set"
   fi
 
   return "${FAILURE_DETECTED}"
 }
 
-@test "Verify cyclonedx-npm is installed" {
-  export CYCLONEDX_NPM_VERSION="1.12.1"
-  run verify_cyclonedx
+@test "Verify boolean cmd switches" {
+  export CDXGEN_PRINT_AS_TABLE="true"
 
-  [ "${lines[1]}" = "version 1.12.1 of cyclonedx-npm is installed" ]
+  output=$(generate_switches)
+  echo "${output}"
+
+  FAILURE_DETECTED=0
+
+  if [[ ${output} != *"--print"* ]]; then
+    FAILURE_DETECTED=$((FAILURE_DETECTED + 1))
+    echo "error: did not find --print switch"
+  fi
+
+  return "${FAILURE_DETECTED}"
+}
+
+@test "Verify cdxgen is installed" {
+  export CYCLONEDX_CDXGEN_VERSION="1.12.1"
+  run verify_cdxgen
+
+  [ "${lines[1]}" = "version 1.12.1 of cdxgen is installed" ]
 }
 
 @test "Verify cyclonedx-npm is installed - invalid version" {
-  unset CYCLONEDX_NPM_VERSION
-  run verify_cyclonedx
+  unset CYCLONEDX_CDXGEN_VERSION
+  run verify_cdxgen
   [ "$status" -eq 1 ]
 }
-
 
 #--------------------------------------------------------------------------------
 #--------------------------Setup and Teardown functions--------------------------
