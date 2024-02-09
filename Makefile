@@ -25,11 +25,11 @@ clean:
 
 .PHONY: docker
 docker:
-	$(DOCKER) build --build-arg ARCH=arm64 --tag cdxgen-pipe:dev .
+	$(DOCKER) build --build-arg ARCH=arm64 --tag cyclonedx-bitbucket-pipe:dev .
 
 .PHONY: docker-amd64
 docker-amd64:
-	$(DOCKER) buildx build --platform linux/amd64 --build-arg ARCH=amd64 --tag cdxgen-pipe:dev .
+	$(DOCKER) buildx build --platform linux/amd64 --build-arg ARCH=amd64 --tag cyclonedx-bitbucket-pipe:dev .
 
 .PHONY: docker-lint
 docker-lint:
@@ -102,7 +102,7 @@ scan-node-project-docker:
 		--env-file variables.list \
 		--env CDXGEN_PROJECT_TYPE=node \
 		--env CDXGEN_PATH_TO_SCAN=samples/node/ \
-		cdxgen-pipe:dev
+		cdxgen-bitbucket-pipe:dev
 
 .PHONY: scan-python-project-docker
 scan-python-project-docker:
@@ -112,7 +112,7 @@ scan-python-project-docker:
 		--env-file variables.list \
 		--env CDXGEN_PROJECT_TYPE=python \
 		--env CDXGEN_PATH_TO_SCAN=samples/python/ \
-		cdxgen-pipe:dev
+		cyclonedx-bitbucket-pipe:dev
 
 .PHONY: scan-java-project-docker
 scan-java-project-docker:
@@ -122,7 +122,7 @@ scan-java-project-docker:
 		--env-file variables.list \
 		--env CDXGEN_PROJECT_TYPE=java \
 		--env CDXGEN_PATH_TO_SCAN=samples/java/ \
-		cdxgen-pipe:dev
+		cyclonedx-bitbucket-pipe:dev
 
 .PHONY: scan-go-project-docker
 scan-go-project-docker:
@@ -132,7 +132,7 @@ scan-go-project-docker:
 		--env-file variables.list \
 		--env CDXGEN_PROJECT_TYPE=go \
 		--env CDXGEN_PATH_TO_SCAN=samples/go/ \
-		cdxgen-pipe:dev
+		cyclonedx-bitbucket-pipe:dev
 
 .PHONY: scan-universal-project-docker
 scan-universal-project-docker:
@@ -141,7 +141,7 @@ scan-universal-project-docker:
 		--workdir /tmp  \
 		--env-file variables.list \
 		--env CDXGEN_PROJECT_TYPE=universal \
-		cdxgen-pipe:dev
+		cyclonedx-bitbucket-pipe:dev
 
 .PHONY: docker-debug
 docker-debug:
@@ -150,4 +150,4 @@ docker-debug:
 		--workdir /tmp \
 		--env-file variables.list \
 		--entrypoint bash \
-		cdxgen-pipe:dev
+		cyclonedx-bitbucket-pipe:dev

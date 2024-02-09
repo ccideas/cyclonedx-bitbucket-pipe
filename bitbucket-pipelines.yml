@@ -3,8 +3,9 @@ definitions:
     - step: &build-docker-image
         name: 'Build Docker Image'
         script:
-          - docker build --build-arg ARCH=amd64 --tag "${BITBUCKET_REPO_SLUG}:local" .
-          - docker save "${BITBUCKET_REPO_SLUG}:local" --output "${BITBUCKET_REPO_SLUG}.tar"
+          - IMAGE_NAME=cyclonedx-bitbucket-pipe
+          - docker build --build-arg ARCH=amd64 --tag "${IMAGE_NAME}:local" .
+          - docker save "${IMAGE_NAME}:local" --output "${IMAGE_NAME}.tar"
         services:
           - docker
         caches:
@@ -52,10 +53,10 @@ pipelines:
           deployment: Development
           script:
             - echo ${DOCKERHUB_PASSWORD} | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
-            - IMAGE_NAME=$BITBUCKET_REPO_SLUG
-            - docker load --input "${BITBUCKET_REPO_SLUG}.tar"
-            - docker tag "${BITBUCKET_REPO_SLUG}:local" "${DOCKERHUB_NAMESPACE}/${BITBUCKET_REPO_SLUG}:${DEV_VERSION}-${BITBUCKET_BUILD_NUMBER}"
-            - docker push "${DOCKERHUB_NAMESPACE}/${BITBUCKET_REPO_SLUG}:${DEV_VERSION}-${BITBUCKET_BUILD_NUMBER}"
+            - IMAGE_NAME=cyclonedx-bitbucket-pipe
+            - docker load --input "${IMAGE_NAME}.tar"
+            - docker tag "${IMAGE_NAME}:local" "${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${DEV_VERSION}-${BITBUCKET_BUILD_NUMBER}"
+            - docker push "${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${DEV_VERSION}-${BITBUCKET_BUILD_NUMBER}"
           services:
             - docker
     Prod Release:
@@ -69,10 +70,11 @@ pipelines:
             - step:
                 name: 'Publish Prod Docker Image'
                 script:
+                  - IMAGE_NAME=cyclonedx-bitbucket-pipe
                   - echo ${DOCKERHUB_PASSWORD} | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
-                  - docker load --input "${BITBUCKET_REPO_SLUG}.tar"
-                  - docker tag "${BITBUCKET_REPO_SLUG}:local" "${DOCKERHUB_NAMESPACE}/${BITBUCKET_REPO_SLUG}:${PRODUCTION_VERSION}"
-                  - docker push "${DOCKERHUB_NAMESPACE}/${BITBUCKET_REPO_SLUG}:${PRODUCTION_VERSION}"
+                  - docker load --input "${IMAGE_NAME}.tar"
+                  - docker tag "${IMAGE_NAME}:local" "${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${PRODUCTION_VERSION}"
+                  - docker push "${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}:${PRODUCTION_VERSION}"
                 services:
                   - docker
                 caches:
