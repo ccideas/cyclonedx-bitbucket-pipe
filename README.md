@@ -33,7 +33,7 @@ pipelines:
         caches:
           - node
         script:
-          - pipe: docker://ccideas/cyclonedx-cdxgen-bitbucket-pipe:1.0.0
+          - pipe: docker://ccideas/cyclonedx-bitbucket-pipe:1.0.0
             variables:
               CDXGEN_PROJECT_TYPE: 'node'
               CDXGEN_PATH_TO_SCAN: 'samples/node'

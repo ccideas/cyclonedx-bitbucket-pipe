@@ -1,8 +1,8 @@
-name: CycloneDX node/npm sBOM Generator
-image: ccideas/cyclonedx-npm-pipe:1.1.0
+name: CycloneDX sBOM Generator
+image: ccideas/cyclonedx-bitbucket-pipe:1.0.0
 category: Security
-description: Generates a CycloneDX compliant Software Bill of Materials for a node/npm project
-repository: https://bitbucket.org/ccideas1/cyclonedx-npm-pipe/src/main/
+description: Generates a CycloneDX compliant Software Bill of Materials
+repository: https://bitbucket.org/ccideas1/cyclonedx-pipe/src/main/
 tags:
   - sbom
   - oss
